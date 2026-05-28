@@ -9,7 +9,8 @@ Feynman-style tech blog. Dual audience: non-technical readers + engineers. Same 
 3. Web-search for real numbers (latency, protocol names, exact specs)
 4. Write full draft following story_system.md rules exactly — **output HTML only** (no .md file)
 5. Run `python scripts/add_diagram_export.py output/<slug>.html` after writing the HTML
-6. After review: ask "what was off?" → edit story_system.md → save memory if recurring pattern
+6. **Completion alert** (always, once the post is fully built): fire a `PushNotification` (e.g. "Post ready: <title> → output/<slug>.html") AND surface the finished file with `SendUserFile output/<slug>.html` so the user gets a direct link to the generated HTML. This mirrors the topic-pick alert at step 2 — the run must alert at the end too, not just the start.
+7. After review: ask "what was off?" → edit story_system.md → save memory if recurring pattern
 
 ## Key files
 
