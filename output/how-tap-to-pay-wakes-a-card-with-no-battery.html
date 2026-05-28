@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Tap-to-Pay Wakes a Card With No Battery</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #f0ebe2;
+      --border: #ddd5c8;
+      --text: #2a2118;
+      --muted: #9a8f82;
+      --accent: #2563a8;
+      --accent-soft: #dce8f5;
+      --diagram-bg: #f2ede4;
+      --diagram-border: #d8cfc3;
+      --node-bg: #e8f0f9;
+      --node-border: #b0c8e8;
+      --warn-bg: #fdf3e3;
+      --warn-border: #e0a030;
+      --warn-text: #8a5a10;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.9;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 72px 24px 120px;
+    }
+
+    /* ── Header ── */
+    .kicker {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 14px;
+    }
+
+    .lede {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 52px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    /* ── Prose ── */
+    p { margin-bottom: 1.5em; }
+
+    p.big {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    em { font-style: italic; color: #5a4a3a; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .num {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Pull quote ── */
+    blockquote {
+      border-left: 2px solid var(--accent);
+      margin: 36px 0;
+      padding: 4px 24px;
+    }
+
+    blockquote p {
+      font-size: 1.2rem;
+      color: #4a3a2a;
+      font-style: italic;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Warning block ── */
+    .aside {
+      background: var(--warn-bg);
+      border-left: 3px solid var(--warn-border);
+      padding: 14px 20px;
+      margin: 32px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.93em;
+      color: var(--warn-text);
+      line-height: 1.7;
+    }
+
+    /* ── Diagrams ── */
+    .diagram {
+      margin: 44px 0;
+      background: var(--diagram-bg);
+      border: 1px solid var(--diagram-border);
+      border-radius: 10px;
+      padding: 28px 24px 22px;
+    }
+
+    .diagram-title {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .diagram-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* coupling row */
+    .chain {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chain-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .chain-node {
+      flex: 1;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .chain-node .ico { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+    .chain-node .nm {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+    }
+    .chain-node .sub {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .chain-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    /* Timeline */
+    .timeline {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 1px;
+      background: var(--node-border);
+    }
+
+    .tl-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tl-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin: 0 auto 8px;
+    }
+
+    .tl-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+
+    .tl-time {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Closing */
+    .closing {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sources {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .sources h2 {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 400;
+    }
+
+    @media (max-width: 580px) {
+      h1 { font-size: 1.9rem; }
+      body { font-size: 17px; }
+      .timeline { flex-wrap: wrap; gap: 16px; }
+      .timeline::before { display: none; }
+      .tl-step { flex: 0 0 45%; }
+      .chain-row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<article class="page">
+
+  <div class="kicker">tech-for-dummies &nbsp;·&nbsp; 7 min read</div>
+  <h1>How Tap-to-Pay Wakes a Card With No Battery</h1>
+  <p class="lede">You tap. It says "Approved." Your card has no battery, no charger, no power button. So what just woke it up — and how did it talk back?</p>
+
+  <hr />
+
+  <p class="big">You hold your card near the reader. It beeps. <em>Approved.</em></p>
+
+  <p>
+    You didn't slide anything into a slot. You didn't even touch the thing — you just floated the card a centimetre away and a transaction settled between you, a shop, and a bank on the other side of the city. The whole exchange took less time than a blink.
+  </p>
+
+  <p>
+    Now turn the card over and look at it. There's no battery. No little gold contacts to charge it. No power button, no screen, nothing that could possibly be holding a charge. You've owned it for years and never plugged it in. By every reasonable measure, this card is an inert rectangle of plastic.
+  </p>
+
+  <p>
+    And yet, for about half a second, it ran a computer, did some cryptography, and held a conversation. Something woke it up. The question is what.
+  </p>
+
+  <hr />
+
+  <p>
+    The answer is that the reader is shouting, and your card is listening with an antenna you can't see.
+  </p>
+
+  <p>
+    Inside your card, looped around the very edge of the plastic, is a flat coil of wire — several turns of it, running the full perimeter. You'd never know it's there. Inside the payment terminal is a second coil, doing one thing constantly, whether or not anyone is paying: pushing an alternating current back and forth through itself <span class="num">13.56 million</span> times a second, which throws off an invisible magnetic field that pulses at exactly that rate. The terminal is always broadcasting. It's been broadcasting all day. 📡
+  </p>
+
+  <p>
+    When you bring your card into that field, physics does you a favour. A magnetic field that's changing — flipping direction <span class="num">13.56M</span> times a second — will shove electrons around in any nearby loop of wire. Your card's coil sits in the field, the field flips, and a current starts flowing in the coil that wasn't there a moment ago. The card didn't bring power. The reader handed it power, through thin air, the instant the two coils got close enough.
+  </p>
+
+  <blockquote>
+    <p>Two coils, no wire between them. That's a transformer — the same trick humming inside every phone charger, except here the second half of it is in your wallet.</p>
+  </blockquote>
+
+  <p>
+    This is <em>inductive coupling</em>, and the chip in your card runs on nothing else. The current the reader induces is alternating — sloshing back and forth — so the chip first sends it through a <em>rectifier</em>, a tiny circuit that bends the back-and-forth into steady one-way power, then smooths it and feeds it to the processor. Cross the gap, and the chip boots. Pull away, and it goes dark mid-thought. There is no in-between, because there is nothing stored. The power exists only while you're holding the card in the field.
+  </p>
+
+  <!-- COUPLING DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">Power across the gap — no wire required</div>
+    <div class="chain">
+      <div class="chain-row">
+        <div class="chain-node">
+          <span class="ico">📟</span>
+          <span class="nm">Reader Coil</span>
+          <span class="sub">drives 13.56 MHz alternating current — always on</span>
+        </div>
+        <div class="chain-arrow">))) →</div>
+        <div class="chain-node">
+          <span class="ico">〰️</span>
+          <span class="nm">Magnetic Field</span>
+          <span class="sub">flips direction 13.56M times/sec across the air gap</span>
+        </div>
+        <div class="chain-arrow">→ )))</div>
+        <div class="chain-node">
+          <span class="ico">💳</span>
+          <span class="nm">Card Coil + Chip</span>
+          <span class="sub">field induces a current → rectifier → chip powers on</span>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">The two coils form a transformer with nothing but air between them. Remove the card from the field and the chip loses all power instantly.</p>
+  </div>
+
+  <hr />
+
+  <p>
+    This is also why you have to get so close. You've felt it — hold the card a hand's width away and nothing happens; bring it within a couple of centimetres and it springs to life. That's not the terminal being fussy. It's the kind of field it is.
+  </p>
+
+  <p>
+    A magnetic field like this one is <em>near-field</em> — it doesn't radiate across a room the way a radio station does. Its strength falls off brutally with distance, fading to nothing within a few centimetres of the coil. The standard that governs your card, an international rulebook called <em>ISO 14443</em>, is built around a working range of roughly <span class="num">4 cm</span>. Beyond that, there simply isn't enough field left to power the chip.
+  </p>
+
+  <p>
+    The short range is doing security work for free. A card that can only be powered from four centimetres away is a card that can't be quietly energised by someone standing behind you in line. To wake your card, you have to almost touch it to the reader — which is exactly the gesture you already make, and exactly the gesture a pickpocket can't make from across the aisle.
+  </p>
+
+  <hr />
+
+  <p>
+    So the card is awake. Now it has to answer. And here's the part that turns the whole thing on its head.
+  </p>
+
+  <p>
+    Your card has no transmitter. Broadcasting a radio signal of its own would take real power — power it doesn't have, because every drop it owns is being spent just staying on. It cannot shout back. So it doesn't. Instead, it does something far stranger: it talks by getting heavier and lighter.
+  </p>
+
+  <p>
+    Remember, the card is drawing power out of the reader's field, like a straw drawing from a glass. The chip can choose, thousands of times a second, to sip harder or sip softer — switching a small load on and off inside itself. And the reader, on the other end of that same field, can <em>feel</em> the difference. Every time the card draws a little more, the reader's own circuit dips a little. The card isn't sending a signal. It's tugging on the reader's signal, and the reader reads the tugs. 🤏
+  </p>
+
+  <p>
+    This is <em>load modulation</em>, and it's the quiet genius of the whole system. The card switches its load on and off at <span class="num">847.5 kHz</span> — a rhythm fast enough to ride on top of the reader's <span class="num">13.56 MHz</span> hum without getting lost in it — and the pattern of heavier and lighter spells out bits, around <span class="num">106 kbit/s</span> of them. The reader feels a faint shudder in its own field and decodes your card's reply out of it. Two devices, one of them with no power source and no transmitter, holding a full conversation across a few centimetres of air.
+  </p>
+
+  <hr />
+
+  <p>
+    And that conversation is not your card reciting its number into the void. If it were, anyone who overheard one tap could replay it forever. That's the trap the magnetic-stripe cards fell into for decades — the stripe held the same fixed data every time, so a single skim was enough to clone it.
+  </p>
+
+  <p>
+    Your contactless card slams that door. When it talks back, the chip uses a secret key — one baked into it at the factory, one that <em>never</em> leaves the chip and is known only to it and your bank — to compute a fresh one-time code for this exact purchase. The amount, the moment, a counter that ticks up every single tap: all of it gets stirred into a cryptographic signature called an <em>ARQC</em>, an Authorisation Request Cryptogram. The terminal can't fake it. The terminal never even sees the key. It just relays the cryptogram to your bank, which holds the matching secret, recomputes the same code, and checks that the two agree.
+  </p>
+
+  <blockquote>
+    <p>Eavesdrop on a tap and all you capture is a code that was already spent the instant it was made. Replay it and the bank sees a counter that already ticked past, and says no.</p>
+  </blockquote>
+
+  <p>
+    That's why a contactless card is so much harder to clone than the old stripe. There's nothing static worth stealing. The card doesn't hand over a secret; it proves it knows one, in a way that's useless to anyone the moment it's spoken. And it does all of this — power up, select the payment app, sign the cryptogram, reply — inside a budget the standard caps at half a second. The card is meant to be in the field for no more than <span class="num">500 ms</span>: roughly <span class="num">100 ms</span> for the reader's side of the talk, and up to <span class="num">400 ms</span> for the card's. 🔐
+  </p>
+
+  <div class="aside">
+    ⚠️ This is also why a tap occasionally fails. Sweep the card past too fast and you yank it out of the field before the chip finishes signing — the power collapses mid-sentence, the cryptogram never lands, and the terminal, hearing only half an answer, declines. The fix is the thing the cashier always tells you: hold it still, a moment longer.
+  </div>
+
+  <!-- TIMELINE DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">One tap — start to "Approved"</div>
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-dot">💳</div>
+        <span class="tl-label">Card enters field</span>
+        <span class="tl-time">t = 0</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">⚡</div>
+        <span class="tl-label">Chip powers on</span>
+        <span class="tl-time">induced current</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">📂</div>
+        <span class="tl-label">Payment app selected</span>
+        <span class="tl-time">ISO 14443</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🔏</div>
+        <span class="tl-label">Cryptogram signed</span>
+        <span class="tl-time">one-time ARQC</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🤏</div>
+        <span class="tl-label">Reply via load</span>
+        <span class="tl-time">847.5 kHz</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">✅</div>
+        <span class="tl-label">Approved</span>
+        <span class="tl-time">&lt; 500 ms total</span>
+      </div>
+    </div>
+    <p class="diagram-caption">Every step runs on power borrowed from the reader's field. Take the card away and the whole sequence stops where it stood.</p>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <p>The reader beeps. The card goes dark.</p>
+    <p style="margin-top:1.2em;">
+      It's back to being an inert rectangle in your wallet, holding no charge, doing nothing, waiting for the next field to lend it half a second of life. You didn't think about the coil, or the borrowed current, or the load it tugged to speak, or the one-time code that's already worthless.
+    </p>
+    <p>You just held it near the reader. It said yes.</p>
+    <p style="margin-top:1.2em; color: var(--text); font-size: 1.05em;">
+      Tomorrow you'll do it again, and now you'll feel the half-second. 🙂
+    </p>
+  </div>
+
+  <div class="sources">
+    <h2>Sources</h2>
+    Near-field communication overview (ISM band, inductive coupling): en.wikipedia.org/wiki/Near-field_communication<br />
+    ISO/IEC 14443 — 13.56 MHz, induction-powered PICC, rectifier, ~10 cm physical limit: en.wikipedia.org/wiki/ISO/IEC_14443 ; gototags.com/help/nfc/standards/iso-14443<br />
+    Contactless EMV transaction timing (500 ms budget) and ~4 cm working range: emvco.com EMV Contactless specifications; infishark.com/blogs/learn/contactless-payment-security<br />
+    Load modulation, 847.5 kHz subcarrier (13.56 MHz / 16), 106 kbit/s Manchester coding: mathworks.com/help/comm/ug/near-field-communication-nfc.html<br />
+    Dynamic ARQC cryptogram and why contactless cards resist cloning: cryptomathic.com/blog/reducing-payment-card-fraud-by-shifting-over-to-emv-chip-technology
+  </div>
+
+</article>
+</body>
+</html>
