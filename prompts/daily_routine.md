@@ -54,21 +54,12 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
       - Pull quotes as > blockquote
       - Bold/em preserved as **bold** / *italic*
       - Inline code as `code`
-      - For each [DIAGRAM: description], write a placeholder that will be
-        replaced by the diagram script:
-          [DIAGRAM_PLACEHOLDER: description]
-        Do NOT write the image link yourself — the script fills it in.
+      - For each [DIAGRAM: description], write this marker on its own line:
+          [INSERT DIAGRAM: description — copy from HTML]
+        The author will paste the diagram image manually from the HTML file.
+        Do NOT generate PNG files. Do NOT run the diagram script.
       - Sources as a final ## Sources section, plain bullet list
       - No HTML tags. Pure Markdown only.
-
-   Then run the diagram script to download PNG images and update the .md:
-      python scripts/make_diagrams.py output/<kebab-case-slug>.md
-   This reads every [MERMAID: ...] block from the draft, downloads a PNG
-   for each one from mermaid.ink, saves them to
-   output/images/<kebab-case-slug>/diagram-N.png, and replaces each
-   [DIAGRAM_PLACEHOLDER: description] in the .md with:
-      ![description](output/images/<slug>/diagram-N.png)
-   so GitHub renders the images inline.
 
 9. Append an entry to state/published_topics.json with title, file path
    (the .html file), today's date (absolute, not relative), and status

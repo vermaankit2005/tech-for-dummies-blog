@@ -24,7 +24,7 @@ When you bring your card into that field, physics does you a favour. A magnetic 
 
 This is *inductive coupling*, and the chip in your card runs on nothing else. The current the reader induces is alternating — sloshing back and forth — so the chip first sends it through a *rectifier*, a tiny circuit that bends the back-and-forth into steady one-way power, then smooths it and feeds it to the processor. Cross the gap, and the chip boots. Pull away, and it goes dark mid-thought. There is no in-between, because there is nothing stored. The power exists only while you're holding the card in the field.
 
-![How the reader powers the card across an air gap](output/images/how-tap-to-pay-wakes-a-card-with-no-battery/diagram-1.png)
+[INSERT DIAGRAM: How the reader powers the card across an air gap — copy from HTML]
 
 ---
 
@@ -56,7 +56,7 @@ That's why a contactless card is so much harder to clone than the old stripe. Th
 
 This is also why a tap occasionally fails. Sweep the card past too fast and you yank it out of the field before the chip finishes signing — the power collapses mid-sentence, the cryptogram never lands, and the terminal, hearing only half an answer, declines. The fix is the thing the cashier always tells you: hold it still, a moment longer.
 
-![One tap from field entry to Approved](output/images/how-tap-to-pay-wakes-a-card-with-no-battery/diagram-2.png)
+[INSERT DIAGRAM: One tap from field entry to Approved — copy from HTML]
 
 ---
 
