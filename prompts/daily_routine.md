@@ -65,7 +65,9 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
    (the .html file), today's date (absolute, not relative), and status
    "draft — autonomous, awaiting review".
 10. Commit on the master branch and push to origin/master. No feature
-    branch. No pull request.
+    branch. No pull request. This applies whether the routine runs
+    automatically or is triggered manually by the user — always master,
+    never a separate branch.
     - Commit subject: "Daily post: <title>".
     - Commit body: the approved topic, the topic-selection reasoning, and
       the 4 candidates that were presented.

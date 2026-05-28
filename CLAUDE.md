@@ -38,6 +38,10 @@ Agents built but dormant — no API key. Claude runs all 3 agent roles manually 
 - Diagrams only after prose earns them. Max 2-3 per post.
 - One failure state mention per post max.
 
+## Branching rule
+
+Always commit and push directly to master. No feature branches, no pull requests — for the daily routine, for manual workflow runs, for any post output. The only exception is if a session is explicitly scoped to a different task by the user.
+
 ## After each post
 
 Ask user: "What was off?" → edit story_system.md with the fix → update `state/published_topics.json` with new topic.
