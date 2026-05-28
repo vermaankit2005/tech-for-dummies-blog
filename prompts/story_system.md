@@ -169,15 +169,37 @@ A diagram earns its place only when ALL THREE are true:
 3. The diagram serves both audiences — an engineer nods ("yes, that's right"),
    a non-technical reader thinks ("oh, I get it now")
 
-Place diagrams using this marker format:
+Place diagrams using this marker pair — both are required every time:
+
 [DIAGRAM: one-line description of what the diagram shows]
+[MERMAID:
+<valid Mermaid syntax here>
+]
 
-Maximum: one diagram per narrative beat (each beat = one major movement in
-the story, roughly 300-500 words). If you're placing more than one diagram
-per beat, you're replacing prose with pictures. Stop.
+The [DIAGRAM: ...] line drives the HTML cream-paper render (CSS layout).
+The [MERMAID: ...] block drives the Medium render (converted to a PNG image
+via mermaid.ink). Both must be present. Never place one without the other.
 
-For a 5-beat post, maximum 5 diagrams. In practice, 2-3 is right.
-A post with zero diagrams is better than a post with diagrams that weren't earned.
+MERMAID SYNTAX RULES:
+- Use `graph LR` for left-to-right chains and flows
+- Use `graph TD` for top-down trees
+- Use `timeline` for sequences with time labels
+- Keep node labels short (≤ 5 words). Avoid special characters inside
+  labels — use plain ASCII. Wrap labels in quotes if they contain spaces.
+- Do not use subgraphs unless the diagram has distinct logical groups
+- Test mentally: if a reader sees only the image, does it confirm what the
+  prose already taught? If not, simplify until it does.
+
+Example pair:
+[DIAGRAM: How the reader powers the card across an air gap]
+[MERMAID:
+graph LR
+  A["Reader coil\n13.56 MHz"] -->|magnetic field| B["Air gap\n~4 cm"]
+  B -->|induced current| C["Card chip\nno battery"]
+]
+
+Maximum: one diagram pair per narrative beat. In practice, 2-3 is right.
+A post with zero diagrams is better than a post with unearned diagrams.
 
 ---
 

@@ -37,18 +37,48 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
 7. STORY: full draft per story_system.md. Second person, present tense,
    reader-as-protagonist, inline jargon, layered precision, no interest
    labels, no "In this post" opener, no closing summary. 1,500–2,500 words.
-   Diagrams only if earned (max 2-3).
-8. Render HTML using the same cream-paper template as
-   output/what-happens-when-you-type-google.html. Save to
-   output/<kebab-case-slug>.html.
-9. Append an entry to state/published_topics.json with title, file path,
-   today's date (absolute, not relative), and status
-   "draft — autonomous, awaiting review".
+   Every [DIAGRAM: ...] marker must be paired with a [MERMAID: ...] block.
+8. Render TWO HTML files:
+
+   A. output/<kebab-case-slug>.html — the full cream-paper template
+      (same as output/what-happens-when-you-type-google.html). Diagrams
+      rendered as CSS/HTML layout components as usual.
+
+   B. output/<kebab-case-slug>-medium.html — Medium-safe HTML only.
+      Rules:
+      - Allowed tags only: h1, h2, h3, p, blockquote, strong, em, hr,
+        ul, ol, li, code, pre, img. No div, no span, no CSS, no style.
+      - For each diagram, output this HTML comment block immediately
+        followed by a fallback text line:
+          <!-- DIAGRAM_START
+          <paste the raw Mermaid code here, exactly as written>
+          DIAGRAM_END -->
+          <p><em>[Diagram: <description>]</em></p>
+        The publish script will replace both lines with the rendered image.
+      - Pull quotes: use <blockquote><p>...</p></blockquote>
+      - Section breaks: use <hr />
+      - No title tag — the publish script sends the title separately.
+      - End with a Sources section as a <p> block.
+
+9. Append an entry to state/published_topics.json with title, file path
+   (the cream-paper .html, not the medium one), today's date (absolute,
+   not relative), and status "draft — autonomous, awaiting review".
 10. Commit on the master branch and push to origin/master. No feature
     branch. No pull request.
     - Commit subject: "Daily post: <title>".
     - Commit body: the approved topic, the topic-selection reasoning, and
       the 4 candidates that were presented.
+11. Publish to Medium as a draft:
+    Run: python scripts/publish_to_medium.py \
+           output/<kebab-case-slug>-medium.html \
+           "<title>"
+    The script reads MEDIUM_INTEGRATION_TOKEN from .env, converts the
+    Mermaid blocks to mermaid.ink image URLs, and POSTs to the Medium API
+    as a draft (not public). It prints the draft URL.
+    Notify the user: "Medium draft ready: <draft URL>. Open the Medium app,
+    go to your Drafts, review and tap Publish."
+    If the script fails (token missing, API error), escalate as a blocker
+    using the standard format and HALT.
 
 ================================================================
 HUMAN-IN-LOOP — escalate and HALT if any of these trigger
@@ -61,6 +91,7 @@ HUMAN-IN-LOOP — escalate and HALT if any of these trigger
 - Topic touches current politics, named living individuals in an
   unflattering light, or active security exploits.
 - Commit or push fails.
+- Medium publish script fails (token missing, API error, network failure).
 
 When a blocker triggers, tell the user via the Claude app (AskUserQuestion or
 a plain message that surfaces on their phone) in this format:
