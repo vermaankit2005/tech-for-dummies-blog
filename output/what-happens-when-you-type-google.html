@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What Happens When You Type google.com</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #f0ebe2;
+      --border: #ddd5c8;
+      --text: #2a2118;
+      --muted: #9a8f82;
+      --accent: #2563a8;
+      --accent-soft: #dce8f5;
+      --diagram-bg: #f2ede4;
+      --diagram-border: #d8cfc3;
+      --node-bg: #e8f0f9;
+      --node-border: #b0c8e8;
+      --warn-bg: #fdf3e3;
+      --warn-border: #e0a030;
+      --warn-text: #8a5a10;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.9;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 72px 24px 120px;
+    }
+
+    /* ── Header ── */
+    .kicker {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 14px;
+    }
+
+    .lede {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 52px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    /* ── Prose ── */
+    p { margin-bottom: 1.5em; }
+
+    p.big {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    em { font-style: italic; color: #5a4a3a; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .num {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Pull quote ── */
+    blockquote {
+      border-left: 2px solid var(--accent);
+      margin: 36px 0;
+      padding: 4px 24px;
+    }
+
+    blockquote p {
+      font-size: 1.2rem;
+      color: #4a3a2a;
+      font-style: italic;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Warning block ── */
+    .aside {
+      background: var(--warn-bg);
+      border-left: 3px solid var(--warn-border);
+      padding: 14px 20px;
+      margin: 32px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.93em;
+      color: var(--warn-text);
+      line-height: 1.7;
+    }
+
+    /* ── Diagrams ── */
+    .diagram {
+      margin: 44px 0;
+      background: var(--diagram-bg);
+      border: 1px solid var(--diagram-border);
+      border-radius: 10px;
+      padding: 28px 24px 22px;
+    }
+
+    .diagram-title {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .diagram-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* DNS chain */
+    .chain {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chain-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .chain-node {
+      flex: 1;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .chain-node .ico { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+    .chain-node .nm {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+    }
+    .chain-node .sub {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .chain-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    .chain-mid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      position: relative;
+    }
+
+    .chain-mid::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--node-border);
+    }
+
+    .chain-mid span {
+      background: var(--diagram-bg);
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      padding: 0 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Journey timeline */
+    .timeline {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 1px;
+      background: var(--node-border);
+    }
+
+    .tl-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tl-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin: 0 auto 8px;
+    }
+
+    .tl-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+
+    .tl-time {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Closing */
+    .closing {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 580px) {
+      h1 { font-size: 1.9rem; }
+      body { font-size: 17px; }
+      .timeline { flex-wrap: wrap; gap: 16px; }
+      .timeline::before { display: none; }
+      .tl-step { flex: 0 0 45%; }
+      .chain-row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<article class="page">
+
+  <div class="kicker">tech-for-dummies &nbsp;·&nbsp; 8 min read</div>
+  <h1>What Happens When You Type google.com</h1>
+  <p class="lede">You've done it ten thousand times. You've never watched what actually happens. Here it is — start to finish, in the 300 milliseconds before the page appears.</p>
+
+  <hr />
+
+  <p class="big">You press Enter.</p>
+
+  <p>
+    That's it. One key. And now something remarkable is in motion — something involving your laptop, your router, a chain of servers you've never heard of, undersea cables, and data centers on the other side of the world. All of it, before your coffee gets cold.
+  </p>
+
+  <p>
+    But let's back up to the first problem. The one your browser hits immediately, before anything else can happen.
+  </p>
+
+  <p>
+    It doesn't know where to go.
+  </p>
+
+  <p>
+    You typed <code>google.com</code>. Your browser received it. And then it hit a wall — because <code>google.com</code> is a name, a human convenience, and the internet doesn't move mail by names. It moves mail by numbers. Specifically, by an <em>IP address</em> — a string like <code>142.250.72.14</code> that pinpoints exactly one machine on the global network. Your browser has the name. It needs the number. And until it has the number, it cannot send your request anywhere. 📮
+  </p>
+
+  <p>
+    So the very first thing that happens when you press Enter is not a connection to Google. It's a question.
+  </p>
+
+  <hr />
+
+  <p>
+    Your browser checks its own memory first. If you visited Google in the last few minutes, the answer is already cached — sitting in a small local store, ready to use. Your browser grabs it and skips ahead. But if the cache is cold, you're going through the full lookup.
+  </p>
+
+  <p>
+    The question goes out over <em>UDP</em> — think of it as a postcard, not a phone call. No handshake, no "are you there?" Just a question fired into the network toward your DNS resolver, a lookup service run either by your internet provider or something public like Google's own <code>8.8.8.8</code>. <em>DNS</em> — the Domain Name System — is the phone book of the internet. It's the thing that turns <code>google.com</code> into <code>142.250.72.14</code>.
+  </p>
+
+  <p>
+    The resolver checks its cache. Nothing. So it climbs a chain of nameservers until it finds one with a definitive answer — the address <code>142.250.72.14</code>, back at your browser in somewhere between <span class="num">20 ms</span> and <span class="num">120 ms</span>.
+  </p>
+
+  <p>
+    Tucked into that answer is a TTL — a number that says: <em>remember this for 300 seconds.</em> Your browser stores it. That's why your second visit loads faster. The question was already answered. 🗂️
+  </p>
+
+  <!-- DNS DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">DNS Resolution — what happens on a cold cache</div>
+    <div class="chain">
+      <div class="chain-row">
+        <div class="chain-node">
+          <span class="ico">💻</span>
+          <span class="nm">Your Browser</span>
+          <span class="sub">"where is google.com?"</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔄</span>
+          <span class="nm">Recursive Resolver</span>
+          <span class="sub">your ISP or 8.8.8.8 — checks its cache first</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🌐</span>
+          <span class="nm">Root Nameserver</span>
+          <span class="sub">"ask the .com registry"</span>
+        </div>
+      </div>
+      <div class="chain-mid"><span>↓ referral chain ↓</span></div>
+      <div class="chain-row" style="flex-direction:row-reverse;">
+        <div class="chain-node">
+          <span class="ico">💻</span>
+          <span class="nm">Your Browser</span>
+          <span class="sub">caches 142.250.72.14 + TTL</span>
+        </div>
+        <div class="chain-arrow">←</div>
+        <div class="chain-node">
+          <span class="ico">🔄</span>
+          <span class="nm">Recursive Resolver</span>
+          <span class="sub">relays the answer back</span>
+        </div>
+        <div class="chain-arrow">←</div>
+        <div class="chain-node">
+          <span class="ico">🏢</span>
+          <span class="nm">Google's Nameserver</span>
+          <span class="sub">the authoritative answer — full stop</span>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">On a warm cache, your browser skips all of this and starts the connection immediately.</p>
+  </div>
+
+  <hr />
+
+  <p>
+    Now your browser has the address. Now it can knock.
+  </p>
+
+  <p>
+    It doesn't just send your request. The internet has a rule: before any real data moves, both sides must agree to talk. Your browser sends a <em>SYN</em> — a synchronise packet, a polite <em>I'd like to connect.</em> Google's server sends back a <em>SYN-ACK</em> — <em>heard you, I'm ready.</em> Your browser sends an <em>ACK</em> — <em>great, let's go.</em>
+  </p>
+
+  <p>
+    Three packets. One round trip. About <span class="num">20 milliseconds</span> if Google's edge server is anywhere near you. This is the TCP handshake — and it happens before a single byte of your actual request leaves your machine. 🤝
+  </p>
+
+  <p>
+    Then it knocks again. Because <code>google.com</code> is HTTPS — encrypted — there's a TLS handshake on top of the TCP one. Your browser and Google's server exchange certificates, verify identities, agree on encryption keys. Another round trip. Maybe two. Your browser is making sure it's actually talking to Google, and not some impostor sitting in the middle pretending to be Google. Add another <span class="num">20–60 ms</span>.
+  </p>
+
+  <p>
+    Only now — after the phone book, after two handshakes — does your actual request go out.
+  </p>
+
+  <p>
+    And it travels.
+  </p>
+
+  <p>
+    Your packet leaves your device, hits your home router, exits your ISP, and enters a web of interconnected networks you've never thought about. Each router it passes through reads the destination address — like reading the address on an envelope — and decides which direction sends it closer. This is BGP routing, the Border Gateway Protocol, the duct tape that holds the global internet together. Thousands of independent networks, each operated by different companies, stitched into one by a shared agreement about how to pass mail along. A traceroute from your laptop to Google would show you 10 to 20 of these hops. 🌍
+  </p>
+
+  <p>
+    Your request doesn't travel as one chunk either. TCP has already broken it into numbered packets. Each packet may take a different physical path. One goes through Frankfurt. Another goes through London. They arrive at Google out of order and get reassembled. The internet is not a pipe. It's a postal system where every letter gets cut into pieces and mailed separately.
+  </p>
+
+  <div class="aside">
+    ⚠️ Sometimes this goes wrong. A <strong>BGP route flap</strong> — a brief moment where routers disagree about the best path and start updating their tables simultaneously — can cause your packets to loop, slow down, or get dropped entirely. You see it as a favicon that spins for a few seconds, then resolves. It happens rarely. It's not a bug. It's what happens when your request has to cross a dozen independent networks operated by companies that don't always agree.
+  </div>
+
+  <hr />
+
+  <p>
+    Your request arrives at Google. Except — not really at <em>Google</em>. Not at one place.
+  </p>
+
+  <p>
+    Here's something that surprises most people: <code>142.250.72.14</code> is not a single machine. It's the same IP address advertised simultaneously from hundreds of locations around the world. When your request heads toward that address, the internet routes it to whichever location is physically closest to you. If you're in Mumbai, you hit a server in Mumbai. If you're in London, you hit London. This is called <em>anycast</em> — one address, many destinations, the nearest one wins. 🗺️
+  </p>
+
+  <p>
+    That nearest location is Google's edge. It accepts your connection, then passes your request deeper into Google's infrastructure. A load balancer — software that watches thousands of servers and knows which ones are healthy and how busy each one is — assigns your request to a specific machine. You don't choose. You don't see the choice. You're just assigned, in milliseconds, to a server somewhere in a data centre in Virginia or Oregon or wherever makes sense given your edge location and current traffic patterns.
+  </p>
+
+  <p>
+    That server processes your request. For a simple Google homepage, the work is almost nothing. The page is mostly static — prebuilt, pre-cached, waiting. By the time you asked, the answer was already sitting there. 🏢
+  </p>
+
+  <hr />
+
+  <blockquote>
+    <p>The response arrives at your browser. And here's the thing — it's not a web page. It's a recipe. 📋</p>
+  </blockquote>
+
+  <p>
+    Status code <code>200</code> — HTTP's way of saying <em>found it, here you go.</em> What arrives is HTML, CSS, and JavaScript: structure, style, behaviour. Raw instructions. Your browser follows them, fires a few more requests for images and scripts — all cached, all fast — and paints the screen. 🎨
+  </p>
+
+  <!-- TIMELINE DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">Your request — Enter to pixels</div>
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-dot">⌨️</div>
+        <span class="tl-label">Enter pressed</span>
+        <span class="tl-time">t = 0</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">📖</div>
+        <span class="tl-label">DNS lookup</span>
+        <span class="tl-time">20–120 ms</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🤝</div>
+        <span class="tl-label">TCP + TLS</span>
+        <span class="tl-time">40–80 ms</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🌍</div>
+        <span class="tl-label">BGP routing</span>
+        <span class="tl-time">10–20 hops</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🏢</div>
+        <span class="tl-label">Google edge</span>
+        <span class="tl-time">anycast nearest</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">🎨</div>
+        <span class="tl-label">Pixels on screen</span>
+        <span class="tl-time">&lt; 300 ms total</span>
+      </div>
+    </div>
+    <p class="diagram-caption">On a warm DNS cache near a Google edge, the whole sequence runs in under 300 milliseconds.</p>
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <p>The page appears.</p>
+    <p style="margin-top:1.2em;">
+      You didn't think about the DNS query, or the TCP handshake, or the BGP hops, or the load balancer that silently assigned you to a server, or the render engine that assembled 300 milliseconds of global infrastructure into a clean white box with a cursor in it.
+    </p>
+    <p>You just typed. You pressed Enter.</p>
+    <p style="margin-top:1.2em; color: var(--text); font-size: 1.05em;">
+      Now you can't not think about it. 🙂
+    </p>
+  </div>
+
+</article>
+</body>
+</html>

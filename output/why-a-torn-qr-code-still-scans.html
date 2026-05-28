@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why a Torn QR Code Still Scans</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #f0ebe2;
+      --border: #ddd5c8;
+      --text: #2a2118;
+      --muted: #9a8f82;
+      --accent: #2563a8;
+      --accent-soft: #dce8f5;
+      --diagram-bg: #f2ede4;
+      --diagram-border: #d8cfc3;
+      --node-bg: #e8f0f9;
+      --node-border: #b0c8e8;
+      --dark: #1e1a14;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.9;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 72px 24px 120px;
+    }
+
+    .kicker {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 14px;
+    }
+
+    .lede {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 52px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    p { margin-bottom: 1.5em; }
+
+    p.big {
+      font-size: 1.25rem;
+      line-height: 1.7;
+    }
+
+    em { font-style: italic; color: #5a4a3a; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .num {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    blockquote {
+      border-left: 2px solid var(--accent);
+      margin: 36px 0;
+      padding: 4px 24px;
+    }
+
+    blockquote p {
+      font-size: 1.2rem;
+      color: #4a3a2a;
+      font-style: italic;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Diagrams ── */
+    .diagram {
+      margin: 44px 0;
+      background: var(--diagram-bg);
+      border: 1px solid var(--diagram-border);
+      border-radius: 10px;
+      padding: 28px 24px 22px;
+    }
+
+    .diagram-title {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .diagram-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* ── QR Anatomy ── */
+    .qr-anatomy-wrap {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .qr-schematic {
+      display: grid;
+      grid-template-columns: 64px 1fr 64px;
+      grid-template-rows: 64px 1fr 64px;
+      gap: 5px;
+      width: 240px;
+      height: 240px;
+      flex-shrink: 0;
+    }
+
+    .qr-finder {
+      background: var(--dark);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-finder-core {
+      width: 22px;
+      height: 22px;
+      background: var(--dark);
+      box-shadow: 0 0 0 5px var(--diagram-bg), 0 0 0 10px var(--dark);
+      border-radius: 2px;
+    }
+
+    .qr-data {
+      background: repeating-linear-gradient(
+        135deg,
+        #ccc5b8 0px, #ccc5b8 2px,
+        var(--diagram-bg) 2px, var(--diagram-bg) 8px
+      );
+      border-radius: 4px;
+      border: 1px dashed var(--diagram-border);
+      grid-row: 2;
+      grid-column: 2;
+    }
+
+    .qr-side {
+      background: repeating-linear-gradient(
+        135deg,
+        #ccc5b8 0px, #ccc5b8 2px,
+        var(--diagram-bg) 2px, var(--diagram-bg) 8px
+      );
+      border-radius: 4px;
+      border: 1px dashed var(--diagram-border);
+    }
+
+    .qr-blank {
+      background: repeating-linear-gradient(
+        135deg,
+        #ccc5b8 0px, #ccc5b8 2px,
+        var(--diagram-bg) 2px, var(--diagram-bg) 8px
+      );
+      border-radius: 4px;
+      border: 1px dashed var(--diagram-border);
+    }
+
+    .qr-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+      max-width: 200px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .legend-swatch {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      margin-top: 1px;
+    }
+
+    .swatch-finder { background: var(--dark); }
+
+    .swatch-data {
+      background: repeating-linear-gradient(
+        135deg, #ccc5b8 0px, #ccc5b8 2px, var(--diagram-bg) 2px, var(--diagram-bg) 8px
+      );
+      border: 1px dashed var(--diagram-border);
+    }
+
+    .legend-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+
+    .legend-desc {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+
+    /* ── Logo diagram ── */
+    .logo-diagram-wrap {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .ec-qr-mini {
+      width: 130px;
+      height: 130px;
+      background: repeating-linear-gradient(
+        135deg, #ccc5b8 0px, #ccc5b8 2px, var(--diagram-bg) 2px, var(--diagram-bg) 8px
+      );
+      border-radius: 6px;
+      border: 1px solid var(--diagram-border);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .ec-corner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: var(--dark);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ec-corner::after {
+      content: '';
+      width: 11px;
+      height: 11px;
+      background: var(--dark);
+      box-shadow: 0 0 0 3px var(--diagram-bg);
+      border-radius: 1px;
+    }
+
+    .ec-corner.tl { top: 7px; left: 7px; }
+    .ec-corner.tr { top: 7px; right: 7px; }
+    .ec-corner.bl { bottom: 7px; left: 7px; }
+
+    .ec-logo-overlay {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--accent-soft);
+      border: 2px solid var(--accent);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-note {
+      max-width: 240px;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .logo-note strong {
+      display: block;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    /* ── Closing ── */
+    .closing {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 580px) {
+      h1 { font-size: 1.9rem; }
+      body { font-size: 17px; }
+      .qr-anatomy-wrap { flex-direction: column; }
+      .qr-legend { max-width: 100%; }
+      .logo-diagram-wrap { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<article class="page">
+
+  <div class="kicker">tech-for-dummies &nbsp;·&nbsp; 7 min read</div>
+  <h1>Why a Torn QR Code Still Scans</h1>
+  <p class="lede">The laminate is bubbling. Someone drew on it. Your camera opens the menu anyway. This was not an accident.</p>
+
+  <hr />
+
+  <p class="big">You point your phone at a menu taped to a restaurant window.</p>
+
+  <p>
+    The laminate is bubbled at the edges. Someone has written in marker across one corner, covering a quarter of the black squares. A piece of the code is peeling away from the wall entirely.
+  </p>
+
+  <p>Your camera opens the menu.</p>
+
+  <p>
+    This should not work as reliably as it does. To understand why it does, you have to understand what your phone is actually doing — starting with the fact that it cannot see a QR code at all.
+  </p>
+
+  <hr />
+
+  <p>
+    When your camera frames that grid of black and white squares, what arrives is not black and white. It is a field of numbers. Every pixel gets a brightness value between <span class="num">0</span> and <span class="num">255</span> — pure black to pure white, with everything in between. The afternoon light hitting the window at an angle, the slight blur from your hand moving, the yellowed laminate — all of it arrives as a continuous fog. Your phone's first job is to cut through it. It picks a threshold and makes a binary call for every pixel: dark module or light module, nothing in between.
+  </p>
+
+  <p>
+    Now it has something to work with. Now it needs to find the code.
+  </p>
+
+  <p>
+    The frame might contain a table, a hand, a coffee cup. The QR code is somewhere in there, at some angle, some distance, some size. Your phone has to locate it in milliseconds — and this is the problem Masahiro Hara spent months solving.
+  </p>
+
+  <hr />
+
+  <p>
+    Hara was an engineer at Denso Wave, a Toyota supplier, in 1994. His task was to replace the barcodes used to track auto parts on the factory floor. The problem with barcodes was not just that they held almost nothing — around 20 characters — but that they had to be scanned at a precise angle. Miss the angle and you got nothing. On a moving assembly line, that wasted seconds.
+  </p>
+
+  <p>
+    He needed a code a scanner could grab instantly, from any direction. One afternoon, sitting in front of a Go board — the ancient grid game played with black and white stones — he noticed something. The stones in certain configurations produced a ratio of dark-to-light that a scanner could detect from any angle: <span class="num">1:1:3:1:1</span>, the widths of alternating dark and light bands, identical whether you measured horizontally, vertically, or diagonally. Mathematically distinct from almost anything else a camera might see.
+  </p>
+
+  <p>
+    He put three of those patterns in the corners of his code.
+  </p>
+
+  <p>
+    They are still there. Every QR code has the same three squares — top left, top right, bottom left, never the fourth corner — and your phone finds them the same way: scanning lines across the frame, looking for that ratio. Three hits, in an L-shape. It has the code's location, orientation, and scale. The Go board solved the problem in one afternoon.
+  </p>
+
+  <!-- DIAGRAM 1: QR Anatomy -->
+  <div class="diagram">
+    <div class="diagram-title">Inside a QR Code</div>
+    <div class="qr-anatomy-wrap">
+      <div class="qr-schematic">
+        <div class="qr-finder"><div class="qr-finder-core"></div></div>
+        <div class="qr-side"></div>
+        <div class="qr-finder"><div class="qr-finder-core"></div></div>
+        <div class="qr-side"></div>
+        <div class="qr-data"></div>
+        <div class="qr-side"></div>
+        <div class="qr-finder"><div class="qr-finder-core"></div></div>
+        <div class="qr-side"></div>
+        <div class="qr-blank"></div>
+      </div>
+      <div class="qr-legend">
+        <div class="legend-row">
+          <div class="legend-swatch swatch-finder"></div>
+          <div>
+            <span class="legend-label">Finder Patterns</span>
+            <span class="legend-desc">Three corners, never four. The 1:1:3:1:1 dark-light ratio inside them is detectable from any angle. Missing bottom-right tells the scanner which way is up.</span>
+          </div>
+        </div>
+        <div class="legend-row">
+          <div class="legend-swatch swatch-data"></div>
+          <div>
+            <span class="legend-label">Data + Repair</span>
+            <span class="legend-desc">The actual message, woven with redundant codewords that can reconstruct missing pieces.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">The finder patterns are the same in every QR code ever printed — from a parking ticket to a billboard.</p>
+  </div>
+
+  <p>
+    With the code located, your phone corrects for perspective — it almost never faces the code head-on, so it warps the captured image back to a flat grid using the finder squares as reference points — then reads each cell: <code>0</code> or <code>1</code>, light or dark.
+  </p>
+
+  <p>
+    Most of those bits are the message. But a significant portion are something Hara built in specifically for grease, scratches, and bad printing conditions.
+  </p>
+
+  <hr />
+
+  <blockquote>
+    <p>Every QR code is printed with the means to rebuild itself — including the parts that haven't been damaged yet.</p>
+  </blockquote>
+
+  <p>
+    Before any QR code is printed, the generator runs a calculation on the data — treating it as a polynomial, evaluating it at extra points, appending those values to the grid. The result is that the code carries not just the message, but a mathematical derivative of the message: enough information to reconstruct any portion that goes missing. This is <em>Reed-Solomon error correction</em>, the same algorithm used to recover data from scratched CDs and transmissions from deep-space probes.
+  </p>
+
+  <p>
+    Hara gave creators four levels of protection to choose from, trading code size for durability. At the highest level, a QR code can lose up to <span class="num">30%</span> of its surface — torn away, covered in marker, eaten by water damage — and still decode perfectly. The math fills in what the eye cannot see.
+  </p>
+
+  <p>
+    The marker on your menu covered maybe 20%. The code had margin left.
+  </p>
+
+  <p>
+    This redundancy has one side effect that surprises people: it is why you can put a logo in the center of a QR code. The logo physically covers modules. The surrounding correction data already knows what was there and reconstructs it silently. The logo is not a design hack around the system. It is a use of capacity the system always had.
+  </p>
+
+  <!-- DIAGRAM 2: Logo -->
+  <div class="diagram">
+    <div class="diagram-title">Why the logo doesn't break it</div>
+    <div class="logo-diagram-wrap">
+      <div class="ec-qr-mini">
+        <div class="ec-corner tl"></div>
+        <div class="ec-corner tr"></div>
+        <div class="ec-corner bl"></div>
+        <div class="ec-logo-overlay">&#9670;</div>
+      </div>
+      <div class="logo-note">
+        <strong>What's happening</strong>
+        The logo covers data modules in the center. The surrounding grid holds Reed-Solomon codewords — computed before the code was ever printed — that can reconstruct whatever lies underneath. The decoder sees a gap, fills it in mathematically, and reads the link.
+      </div>
+    </div>
+    <p class="diagram-caption">Works only when the protection level is high enough to absorb the covered area — logo size is not arbitrary.</p>
+  </div>
+
+  <hr />
+
+  <p>
+    The full pipeline — binary threshold, finder detection, perspective correction, grid sampling, error recovery — runs in under <span class="num">100 milliseconds</span>. The computation itself is about <span class="num">30</span>. The delay you notice when your phone is slow to scan is your camera autofocusing. The QR code is already decoded before the image is sharp.
+  </p>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <p>
+      Hara built it for workers who couldn't stop the line. He had no way to know it would end up on restaurant windows, event tickets, payment terminals, the sides of buildings.
+    </p>
+    <p style="margin-top:1.2em;">
+      But he built in the redundancy anyway. Because a factory floor is not a laboratory, and neither is anywhere else.
+    </p>
+    <p style="margin-top:1.2em;">
+      Thirty milliseconds. You were already reading the specials.
+    </p>
+  </div>
+
+  <hr style="margin-top:64px;" />
+  <p style="font-size:13px; color:var(--muted); line-height:1.7;">
+    Sources: DENSO WAVE — History of QR Code (qrcode.com); DENSO WAVE — Error correction feature; QRCodeNova — How QR Code Scanning Works Technically; Reed–Solomon error correction, Wikipedia.
+  </p>
+
+</article>
+</body>
+</html>
