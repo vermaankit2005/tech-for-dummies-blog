@@ -7,8 +7,9 @@ Feynman-style tech blog. Dual audience: non-technical readers + engineers. Same 
 1. Read `prompts/story_system.md` first — always. It's the living voice spec.
 2. Suggest 5 topics → user picks one
 3. Web-search for real numbers (latency, protocol names, exact specs)
-4. Write full draft following story_system.md rules exactly
-5. After review: ask "what was off?" → edit story_system.md → save memory if recurring pattern
+4. Write full draft following story_system.md rules exactly — **output HTML only** (no .md file)
+5. Run `python scripts/add_diagram_export.py output/<slug>.html` after writing the HTML
+6. After review: ask "what was off?" → edit story_system.md → save memory if recurring pattern
 
 ## Key files
 
@@ -16,6 +17,9 @@ Feynman-style tech blog. Dual audience: non-technical readers + engineers. Same 
 - `prompts/topic_system.md` — topic filter rules
 - `prompts/research_system.md` — research output format
 - `state/published_topics.json` — topics already published, never repeat
+- `output/` — finished HTML posts (the publishing artifact — no .md files)
+- `scripts/add_diagram_export.py` — inject "save diagrams as images" button into HTML post
+- `scripts/diagram_export_snippet.html` — the snippet itself (reusable)
 - `agents/` — topic_agent.py, research_agent.py, story_agent.py (need ANTHROPIC_API_KEY to run)
 - `pipeline.py` — full CLI pipeline (dormant until API key added to .env)
 
