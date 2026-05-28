@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Shazam Names a Song in Seconds</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #f0ebe2;
+      --border: #ddd5c8;
+      --text: #2a2118;
+      --muted: #9a8f82;
+      --accent: #2563a8;
+      --accent-soft: #dce8f5;
+      --diagram-bg: #f2ede4;
+      --diagram-border: #d8cfc3;
+      --node-bg: #e8f0f9;
+      --node-border: #b0c8e8;
+      --warn-bg: #fdf3e3;
+      --warn-border: #e0a030;
+      --warn-text: #8a5a10;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.9;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 72px 24px 120px;
+    }
+
+    /* ── Header ── */
+    .kicker {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 14px;
+    }
+
+    .lede {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 52px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    /* ── Prose ── */
+    p { margin-bottom: 1.5em; }
+
+    p.big {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    em { font-style: italic; color: #5a4a3a; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .num {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Pull quote ── */
+    blockquote {
+      border-left: 2px solid var(--accent);
+      margin: 36px 0;
+      padding: 4px 24px;
+    }
+
+    blockquote p {
+      font-size: 1.2rem;
+      color: #4a3a2a;
+      font-style: italic;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Warning block ── */
+    .aside {
+      background: var(--warn-bg);
+      border-left: 3px solid var(--warn-border);
+      padding: 14px 20px;
+      margin: 32px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.93em;
+      color: var(--warn-text);
+      line-height: 1.7;
+    }
+
+    /* ── Diagrams ── */
+    .diagram {
+      margin: 44px 0;
+      background: var(--diagram-bg);
+      border: 1px solid var(--diagram-border);
+      border-radius: 10px;
+      padding: 28px 24px 22px;
+    }
+
+    .diagram-title {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .diagram-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* Fingerprint chain */
+    .chain {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chain-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .chain-node {
+      flex: 1;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .chain-node .ico { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+    .chain-node .nm {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+    }
+    .chain-node .sub {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .chain-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    /* Match scatterplots */
+    .scatter-wrap {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+    }
+
+    .scatter {
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .scatter-plot {
+      position: relative;
+      height: 170px;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translate(-50%, -50%);
+    }
+
+    .dot.faint { background: var(--muted); opacity: 0.55; }
+
+    .scatter-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .scatter-axes {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      display: block;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    /* Closing */
+    .closing {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 580px) {
+      h1 { font-size: 1.9rem; }
+      body { font-size: 17px; }
+      .chain-row { flex-wrap: wrap; }
+      .scatter-wrap { flex-direction: column; align-items: center; }
+      .scatter { max-width: 100%; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<article class="page">
+
+  <div class="kicker">tech-for-dummies &nbsp;·&nbsp; 7 min read</div>
+  <h1>How Shazam Names a Song in Seconds</h1>
+  <p class="lede">Music is playing. You hold up your phone. Four seconds later it knows the song — over forty people talking. Here's what it actually listened to.</p>
+
+  <hr />
+
+  <p class="big">A song is playing, and you don't know it.</p>
+
+  <p>
+    It's coming from somewhere over the bar — under the talking, under the clink of glasses, half-buried by the guy next to you laughing at his own joke. But you want the name. So you pull out your phone, open the app, and hold it up toward the ceiling like you're checking the weather.
+  </p>
+
+  <p>
+    Four seconds. The name appears. Artist, title, the exact track.
+  </p>
+
+  <p>
+    Your phone just identified one song out of tens of millions, from a smeared few seconds of audio, in a room actively trying to drown it out. To see how, you have to start with the thing it refuses to do.
+  </p>
+
+  <p>
+    It does not listen to the tune.
+  </p>
+
+  <hr />
+
+  <p>
+    Think about what actually reached your phone's microphone. Not the song — the song <em>plus a room.</em> Voices on top of it. Glasses. The bass thickened and smeared by the walls. The volume wrong, the high notes eaten by the chatter. If your phone tried to match the raw sound it heard — the actual wiggle of air pressure hitting the mic — against a clean studio recording, it would fail on the first note. The two don't look remotely alike. Play the same song in two different rooms and the raw recordings are practically strangers.
+  </p>
+
+  <p>
+    So your phone throws the sound away. Almost all of it.
+  </p>
+
+  <p>
+    First it turns the few seconds it heard into a <em>spectrogram</em> — a picture of which pitches are loud at each moment. Picture time running left to right, and pitch stacked bottom to top: the low rumble of a bassline along the floor, the high hiss of cymbals near the ceiling. Brightness shows loudness. Your snippet of noise is now an image — a smeared, blotchy one, but an image.
+  </p>
+
+  <p>
+    Then comes the move that makes everything work. Your phone ignores almost the entire picture. It keeps only the <em>peaks</em> — the handful of points where one pitch punches loud above everything around it. A held note at <span class="num">440 Hz</span>. The crack of a snare. Everything else, the whole smeared background, it throws out as noise. What's left is a thin scatter of dots, a few per second, like stars on a black sky. This is the <em>constellation map.</em>
+  </p>
+
+  <blockquote>
+    <p>Your phone isn't trying to remember the song. It's trying to remember the brightest stars in it.</p>
+  </blockquote>
+
+  <p>
+    And the brightest stars are exactly the ones that survive the room. Bury a song under forty people talking and the loudest peaks are still, stubbornly, the loudest. The chatter raises the muck at the bottom; it doesn't move the brightest points. That's why your phone keeps the peaks and discards the rest — they're the part of the song that the room can't erase.
+  </p>
+
+  <!-- FINGERPRINT DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">Four seconds of noise → a fingerprint</div>
+    <div class="chain">
+      <div class="chain-row">
+        <div class="chain-node">
+          <span class="ico">🎵</span>
+          <span class="nm">Raw audio</span>
+          <span class="sub">song + room + voices + clatter</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">📊</span>
+          <span class="nm">Spectrogram</span>
+          <span class="sub">pitch vs time, brightness = loudness</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">✦</span>
+          <span class="nm">Keep peaks only</span>
+          <span class="sub">brightest points survive the noise</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔢</span>
+          <span class="nm">Hash the pairs</span>
+          <span class="sub">a few hundred numbers</span>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">The song never leaves the room. Only the numbers do.</p>
+  </div>
+
+  <hr />
+
+  <p>
+    A scatter of dots is still awkward to search, so your phone does one more thing. It pairs them. It takes one dot as an <em>anchor</em>, looks at a small zone of dots just ahead of it in time, and pairs the anchor with each one. Every pair becomes three numbers: the pitch of the first dot, the pitch of the second, and the time gap between them. Those three numbers get squashed into a single compact code — a <em>hash.</em> Do this for every dot, and your four-second snippet collapses into a list of a few hundred numbers. That list is the <em>fingerprint.</em>
+  </p>
+
+  <p>
+    That fingerprint — a few kilobytes of numbers — is what your phone sends to Shazam. Not the audio. The song never leaves the room.
+  </p>
+
+  <p>
+    The pairing is the clever part. A single loud pitch is common — thousands of songs have something loud at <span class="num">440 Hz</span>. Match on that alone and half the catalogue lights up. But <em>this</em> pitch, followed by <em>that</em> pitch, exactly <em>this</em> far apart? That's rare. That's a specific fact about a specific moment in a specific song. By pairing the stars instead of listing them one by one, your phone turns a vague description into a near-unique signature.
+  </p>
+
+  <hr />
+
+  <p>
+    Shazam has already done all of this — the spectrogram, the peaks, the pairs — to its entire catalogue. Tens of millions of songs, each ground down into the same kind of numbers, sitting in one enormous index. Your few hundred numbers arrive and get looked up against it.
+  </p>
+
+  <p>
+    Plenty of them match something, somewhere. A hash from your snippet collides with an identical hash buried in a thousand unrelated tracks, purely by chance. Coincidence is everywhere in a database that size. So "which song shares the most hashes with you" is the wrong question — the answer is usually just noise.
+  </p>
+
+  <p>
+    Here's the question that works. For the real song, the matches don't merely exist — they <em>line up.</em>
+  </p>
+
+  <p>
+    Picture a graph. Along the bottom: the time a matching hash appears in the database track. Up the side: the time that same hash appears in your recording. Drop a dot for every match. For the thousand wrong songs, the dots land like buckshot — random collisions, no shape. But for the right song, every dot falls on a single straight diagonal line. Because if you started recording <span class="num">47 seconds</span> into the track, then every genuine match sits exactly <span class="num">47 seconds</span> apart in the two timelines, without exception. The real matches march in lockstep. The fake ones don't.
+  </p>
+
+  <!-- MATCH DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">The right song doesn't share the most points — it shares a line</div>
+    <div class="scatter-wrap">
+      <div class="scatter">
+        <div class="scatter-plot">
+          <span class="dot faint" style="left:18%; top:72%;"></span>
+          <span class="dot faint" style="left:64%; top:22%;"></span>
+          <span class="dot faint" style="left:39%; top:55%;"></span>
+          <span class="dot faint" style="left:82%; top:64%;"></span>
+          <span class="dot faint" style="left:27%; top:18%;"></span>
+          <span class="dot faint" style="left:55%; top:81%;"></span>
+          <span class="dot faint" style="left:73%; top:44%;"></span>
+          <span class="dot faint" style="left:11%; top:38%;"></span>
+          <span class="dot faint" style="left:47%; top:30%;"></span>
+          <span class="dot faint" style="left:90%; top:12%;"></span>
+          <span class="dot faint" style="left:33%; top:88%;"></span>
+        </div>
+        <span class="scatter-label">Wrong song</span>
+        <span class="scatter-axes">random collisions — no pattern</span>
+      </div>
+      <div class="scatter">
+        <div class="scatter-plot">
+          <span class="dot" style="left:12%; top:86%;"></span>
+          <span class="dot" style="left:23%; top:75%;"></span>
+          <span class="dot" style="left:34%; top:64%;"></span>
+          <span class="dot" style="left:45%; top:53%;"></span>
+          <span class="dot" style="left:56%; top:42%;"></span>
+          <span class="dot" style="left:67%; top:31%;"></span>
+          <span class="dot" style="left:78%; top:20%;"></span>
+          <span class="dot" style="left:89%; top:9%;"></span>
+          <span class="dot faint" style="left:40%; top:24%;"></span>
+          <span class="dot faint" style="left:71%; top:70%;"></span>
+        </div>
+        <span class="scatter-label">Right song</span>
+        <span class="scatter-axes">every match at the same time offset</span>
+      </div>
+    </div>
+    <p class="diagram-caption">Bottom axis: time in the catalogue track. Side axis: time in your recording. The match is the line, not the count.</p>
+  </div>
+
+  <p>
+    So Shazam slides your fingerprint against each candidate and counts how many matches share the same time offset, then waits for one number to spike far above the random background. That spike is your song. Not the track with the most hashes in common — the track whose hashes fall on a line.
+  </p>
+
+  <p>
+    And when no line ever forms — a live cover the database has never heard, a tune the person next to you is humming, four seconds that turn out to be mostly laughter — the spike never climbs above the noise, and your phone tells you the truth: no match. It would rather say nothing than guess.
+  </p>
+
+  <hr />
+
+  <p>
+    All of it — record, peak, pair, hash, send, match — happens in the time it takes you to lower your arm. Underneath sits a method a man named Avery Wang wrote down in <span class="num">2003</span>, in a paper modestly titled <em>An Industrial-Strength Audio Search Algorithm.</em> The same trick has run ever since, back to when Shazam wasn't an app at all: in <span class="num">2002</span> you dialed <span class="num">2580</span> on your phone, held it up to the speaker for thirty seconds, and a text message came back with the song's name. Different decade, same constellation underneath.
+  </p>
+
+  <p>
+    By <span class="num">2014</span> it had named <span class="num">15 billion</span> songs. Today it does <span class="num">20 million</span> a day.
+  </p>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <p>The song plays on. You already know its name.</p>
+    <p style="margin-top:1.2em;">
+      You lower the phone and you're back in the room — the talking, the glasses, the guy still laughing at his joke. None of it ever made it onto the wire. Your phone didn't send the song anywhere.
+    </p>
+    <p style="margin-top:1.2em; color: var(--text); font-size: 1.05em;">
+      It sent a handful of stars.
+    </p>
+  </div>
+
+</article>
+<!-- ════════════════════════════════════════════════════════════════════
+     diagram-export · phone-friendly "save diagrams as images" for Medium
+     Paste this block immediately before </body> in every post's HTML.
+     What it does: adds a floating button. Tap it and every .diagram block
+     is rendered to a PNG in place, so you can long-press → Save to Photos
+     on a phone, then drop the images into the Medium editor.
+     Fully client-side (html-to-image via CDN). Hidden when printing.
+     ════════════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
+<style>
+  .dexport-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #1e1a14; color: #f8f4ee;
+    font-family: 'Courier New', monospace; font-size: 13px; letter-spacing: .04em;
+    padding: 11px 18px; border: none; border-radius: 24px; cursor: pointer;
+    box-shadow: 0 4px 22px rgba(0,0,0,.3);
+  }
+  .dexport-bar:active { opacity: .7; }
+  .dexport-status {
+    position: fixed; bottom: 66px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #2563a8; color: #fff;
+    font-family: 'Courier New', monospace; font-size: 12px;
+    padding: 7px 15px; border-radius: 16px; display: none; max-width: 86vw;
+    text-align: center;
+  }
+  img[data-dexport] { width: 100%; border-radius: 10px; display: block; }
+  @media print { .dexport-bar, .dexport-status { display: none !important; } }
+</style>
+<button class="dexport-bar" onclick="dexportAll()">⬇ turn diagrams into images</button>
+<div class="dexport-status" id="dexportStatus"></div>
+<script>
+  async function dexportAll() {
+    const nodes  = [...document.querySelectorAll('.diagram')];
+    const status = document.getElementById('dexportStatus');
+    const bar    = document.querySelector('.dexport-bar');
+    if (!nodes.length) { status.style.display = 'block'; status.textContent = 'no diagrams found'; return; }
+    bar.style.display = 'none';
+    const bg = getComputedStyle(document.documentElement)
+                 .getPropertyValue('--diagram-bg').trim() || '#f2ede4';
+    for (let i = 0; i < nodes.length; i++) {
+      status.style.display = 'block';
+      status.textContent = `rendering diagram ${i + 1} of ${nodes.length}…`;
+      try {
+        const dataUrl = await htmlToImage.toPng(nodes[i], { pixelRatio: 2, backgroundColor: bg });
+        const img = new Image();
+        img.src = dataUrl;
+        img.alt = `diagram ${i + 1}`;
+        img.setAttribute('data-dexport', '1');
+        nodes[i].replaceWith(img);
+      } catch (e) {
+        console.error(e);
+        status.textContent = `diagram ${i + 1} failed — ${e.message}`;
+        return;
+      }
+    }
+    status.textContent = 'done · long-press each image → Save to Photos → drop into Medium';
+    setTimeout(() => { status.style.display = 'none'; }, 8000);
+  }
+</script>
+</body>
+</html>
