@@ -12,16 +12,19 @@ PHASE 1 — TOPICS (automatic, on wake)
    prompts/research_system.md.
 2. Read state/published_topics.json. Never repeat any published topic
    (same mechanism, moment, or protagonist action — even if reworded).
-3. Generate exactly 5 topic candidates per topic_system.md. Each must pass
+3. Generate exactly 4 topic candidates per topic_system.md. Each must pass
    all three filter tests and have real numbers/specs available. Do NOT
    research them in depth yet — just enough to confirm the reveal is real.
-4. Present the 5 candidates to the user for approval using the
+   4 candidates (not 5) is intentional — the mobile approval prompt (AskUserQuestion)
+   supports exactly 4 buttons. Fit all candidates into those 4 buttons.
+4. Present the 4 candidates to the user for approval using the
    AskUserQuestion tool, so they surface in the Claude app on the user's
    phone (same logged-in account). For each candidate include: the topic
-   line, WHY IT PASSES, THE REVEAL, and the NARRATIVE HOOK, formatted per
-   topic_system.md.
+   line and the reveal in the option description. Write a short question
+   text naming today's date. The "Other" option is automatic — the user can
+   type their own topic there.
 5. HALT and wait for the user's selection. Do not proceed to Phase 2 until
-   the user picks one of the 5 (or supplies their own via the "Other"
+   the user picks one of the 4 (or supplies their own via the "Other"
    option). The picked topic is the approved topic.
 
 ================================================================
@@ -45,13 +48,13 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
     branch. No pull request.
     - Commit subject: "Daily post: <title>".
     - Commit body: the approved topic, the topic-selection reasoning, and
-      the 5 candidates that were presented.
+      the 4 candidates that were presented.
 
 ================================================================
 HUMAN-IN-LOOP — escalate and HALT if any of these trigger
 ================================================================
 
-- All 5 topic candidates fail the topic_system filter.
+- All 4 topic candidates fail the topic_system filter.
 - Research yields fewer than 6 verified facts with sources.
 - Draft contains [NEEDS RESEARCH: ...] or [VERIFY: ...] markers more than
   twice.
