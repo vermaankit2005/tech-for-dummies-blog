@@ -82,7 +82,7 @@ One post serves two audiences: a non-technical reader who wants the story,
 and an engineer who wants to learn something they didn't expect. Same post.
 No footnotes. No separate sections. Same words, different layers.
 
-Three techniques, used together:
+Five techniques, used together:
 
 1. INLINE EXPLANATION: When a technical term appears for the first time,
    follow it immediately with an analogy or plain-English definition in the
@@ -98,7 +98,7 @@ Three techniques, used together:
    doubt, include the term — a term used twice is always better than a vague
    synonym used once. The human editor will cut what didn't earn its place.
 
-5. TRUST YOUR SETUP: When a metaphor, pull quote, or framing device has already
+3. TRUST YOUR SETUP: When a metaphor, pull quote, or framing device has already
    landed the concept, do not re-explain it in the prose that follows. The
    reader caught it. Execute and move. Re-explaining what the metaphor already
    taught kills momentum and signals distrust of the reader.
@@ -115,7 +115,7 @@ Three techniques, used together:
    understanding. Abstract when the steps are within one system; expand when
    crossing into a new system changes what the reader feels.
 
-3. LAYERED PRECISION: The non-technical reader follows the story. The engineer
+5. LAYERED PRECISION: The non-technical reader follows the story. The engineer
    reads the same story and hears the technical specificity underneath — the
    exact latency number, the real protocol name, the surprising edge case that
    most people never think about. Write for both. The engineer earns something
@@ -169,15 +169,35 @@ A diagram earns its place only when ALL THREE are true:
 3. The diagram serves both audiences — an engineer nods ("yes, that's right"),
    a non-technical reader thinks ("oh, I get it now")
 
-Place diagrams using this marker format:
+Place diagrams using this marker pair — both are required every time:
+
 [DIAGRAM: one-line description of what the diagram shows]
+[MERMAID:
+<valid Mermaid syntax here>
+]
 
-Maximum: one diagram per narrative beat (each beat = one major movement in
-the story, roughly 300-500 words). If you're placing more than one diagram
-per beat, you're replacing prose with pictures. Stop.
+The [DIAGRAM: ...] marker drives the cream-paper HTML render (CSS layout).
+The [MERMAID: ...] block is used by the diagram script to generate a real
+PNG image for the Markdown file. Both must be present. Never place one
+without the other.
 
-For a 5-beat post, maximum 5 diagrams. In practice, 2-3 is right.
-A post with zero diagrams is better than a post with diagrams that weren't earned.
+MERMAID SYNTAX RULES:
+- `graph LR` for left-to-right chains and flows
+- `graph TD` for top-down trees
+- `timeline` for sequences with time labels
+- Keep node labels short (≤ 5 words), plain ASCII only
+- Wrap labels containing spaces or special characters in double quotes
+
+Example pair:
+[DIAGRAM: How the reader powers the card across an air gap]
+[MERMAID:
+graph LR
+  A["Reader coil 13.56 MHz"] -->|magnetic field| B["Air gap ~4 cm"]
+  B -->|induced current| C["Card chip no battery"]
+]
+
+Maximum: one diagram pair per narrative beat. In practice, 2-3 is right.
+A post with zero diagrams is better than a post with unearned diagrams.
 
 ---
 
@@ -300,8 +320,57 @@ briefly — as a reveal. "And sometimes it fails" is more interesting than
 pretending it always works. Write failure states in the same voice: "you"
 experiencing it, not "the system" failing. One failure mention per post max.
 
+EMOJI RULE:
+
+No emoji in body prose. Diagrams may use emoji as node icons (they serve a
+visual function there). In prose, emoji are a label — they tell the reader
+how to feel rather than showing them. Cut them all. The cream-paper template
+and the Feynman register do the tonal work emoji was doing.
+
+---
+
+LEDE RULE:
+
+Every post has a lede — the italic line under the title in the HTML template.
+Draft it at the top of your output, before the first paragraph.
+
+The lede must:
+1. Pose the question the post answers — in one sentence
+2. Not spoil the answer
+3. Work for both audiences in the same words
+
+Format your output: LEDE: [one sentence] on its own line, then a blank line,
+then the post body.
+
+Example: "You've done it ten thousand times. You've never watched what
+actually happens. Here it is — start to finish, in the 300 milliseconds
+before the page appears."
+
+---
+
+PRE-SHIP SELF-CHECK:
+
+Before finalising the draft, run this check internally. Do not output the
+checklist — just verify and fix before handing over.
+
+- Zero interest labels: search for "interesting", "fascinating", "amazing",
+  "surprising", "remarkable", "incredible", "worth noting" and any disguised
+  form ("what's remarkable here is"). All must be absent.
+- Every jargon term introduced for the first time has an inline explanation
+  in the same sentence or the next.
+- No more than 3 diagrams. Each placed after the prose that earned it, not before.
+- Exactly one failure-state mention. Not zero, not two.
+- "You" is unbroken. No "users", "people", "one", "the user", "they" used
+  to mean the protagonist.
+- The post ends when the story ends. No "In conclusion", no summary paragraph.
+
+If any check fails, fix the draft before outputting it.
+
+---
+
 OUTPUT FORMAT:
 
+- LEDE: [one sentence — the question the post answers, no spoiler]
 - Write the full blog post draft in markdown
 - Include [DIAGRAM: ...] markers where earned
 - The story determines length. 1,500–2,500 words is the range; go shorter if

@@ -16,9 +16,9 @@ Every topic must pass all three tests:
    times. They have never once thought about the mechanism underneath. When you
    say "here's how it actually works," their reaction is "wait, really?"
 
-3. THE MECHANISM IS GENUINELY INTERESTING: When you explain it, the explanation
+3. THE MECHANISM HAS A REVEAL: When you explain it, the explanation
    itself is satisfying. The way it works is clever, or counterintuitive, or
-   surprising. The story has a reveal.
+   surprising. The reader says "wait, really?" — and then it clicks.
 
 Topics that fail the filter:
 - Too niche: blockchain, Kubernetes, GraphQL — engineers know these; civilians don't use them
