@@ -37,7 +37,9 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
 7. STORY: full draft per story_system.md. Second person, present tense,
    reader-as-protagonist, inline jargon, layered precision, no interest
    labels, no "In this post" opener, no closing summary. 1,500–2,500 words.
-   Diagrams only if earned (max 2-3).
+   Every [DIAGRAM: ...] marker must be paired with a [MERMAID: ...] block.
+   Save the raw draft (with all [DIAGRAM:] and [MERMAID:] markers intact)
+   to output/<kebab-case-slug>.draft before rendering anything.
 8. Render TWO output files:
 
    A. output/<kebab-case-slug>.html — the full cream-paper template
@@ -52,11 +54,21 @@ PHASE 2 — RESEARCH + STORY (after the user approves a topic)
       - Pull quotes as > blockquote
       - Bold/em preserved as **bold** / *italic*
       - Inline code as `code`
-      - For each [DIAGRAM: description], output this exact placeholder:
-          > 📊 **[Add diagram: description]**
-        The user will add the image manually when pasting into Medium.
+      - For each [DIAGRAM: description], write a placeholder that will be
+        replaced by the diagram script:
+          [DIAGRAM_PLACEHOLDER: description]
+        Do NOT write the image link yourself — the script fills it in.
       - Sources as a final ## Sources section, plain bullet list
       - No HTML tags. Pure Markdown only.
+
+   Then run the diagram script to download PNG images and update the .md:
+      python scripts/make_diagrams.py output/<kebab-case-slug>.md
+   This reads every [MERMAID: ...] block from the draft, downloads a PNG
+   for each one from mermaid.ink, saves them to
+   output/images/<kebab-case-slug>/diagram-N.png, and replaces each
+   [DIAGRAM_PLACEHOLDER: description] in the .md with:
+      ![description](output/images/<slug>/diagram-N.png)
+   so GitHub renders the images inline.
 
 9. Append an entry to state/published_topics.json with title, file path
    (the .html file), today's date (absolute, not relative), and status
