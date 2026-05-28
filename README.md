@@ -8,6 +8,7 @@ A Feynman-style tech blog. One post, two audiences — non-technical readers get
 |-------|--------|
 | [What Happens When You Type google.com](output/what-happens-when-you-type-google.html) | Draft |
 | [Why a Torn QR Code Still Scans](output/why-a-torn-qr-code-still-scans.html) | Draft |
+| [How Tap-to-Pay Wakes a Card With No Battery](output/how-tap-to-pay-wakes-a-card-with-no-battery.html) | Ready for Medium |
 
 ## How it works
 
