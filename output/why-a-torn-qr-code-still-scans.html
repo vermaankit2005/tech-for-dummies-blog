@@ -508,5 +508,64 @@
   </p>
 
 </article>
+<!-- ════════════════════════════════════════════════════════════════════
+     diagram-export · phone-friendly "save diagrams as images" for Medium
+     Paste this block immediately before </body> in every post's HTML.
+     What it does: adds a floating button. Tap it and every .diagram block
+     is rendered to a PNG in place, so you can long-press → Save to Photos
+     on a phone, then drop the images into the Medium editor.
+     Fully client-side (html-to-image via CDN). Hidden when printing.
+     ════════════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
+<style>
+  .dexport-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #1e1a14; color: #f8f4ee;
+    font-family: 'Courier New', monospace; font-size: 13px; letter-spacing: .04em;
+    padding: 11px 18px; border: none; border-radius: 24px; cursor: pointer;
+    box-shadow: 0 4px 22px rgba(0,0,0,.3);
+  }
+  .dexport-bar:active { opacity: .7; }
+  .dexport-status {
+    position: fixed; bottom: 66px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #2563a8; color: #fff;
+    font-family: 'Courier New', monospace; font-size: 12px;
+    padding: 7px 15px; border-radius: 16px; display: none; max-width: 86vw;
+    text-align: center;
+  }
+  img[data-dexport] { width: 100%; border-radius: 10px; display: block; }
+  @media print { .dexport-bar, .dexport-status { display: none !important; } }
+</style>
+<button class="dexport-bar" onclick="dexportAll()">⬇ turn diagrams into images</button>
+<div class="dexport-status" id="dexportStatus"></div>
+<script>
+  async function dexportAll() {
+    const nodes  = [...document.querySelectorAll('.diagram')];
+    const status = document.getElementById('dexportStatus');
+    const bar    = document.querySelector('.dexport-bar');
+    if (!nodes.length) { status.style.display = 'block'; status.textContent = 'no diagrams found'; return; }
+    bar.style.display = 'none';
+    const bg = getComputedStyle(document.documentElement)
+                 .getPropertyValue('--diagram-bg').trim() || '#f2ede4';
+    for (let i = 0; i < nodes.length; i++) {
+      status.style.display = 'block';
+      status.textContent = `rendering diagram ${i + 1} of ${nodes.length}…`;
+      try {
+        const dataUrl = await htmlToImage.toPng(nodes[i], { pixelRatio: 2, backgroundColor: bg });
+        const img = new Image();
+        img.src = dataUrl;
+        img.alt = `diagram ${i + 1}`;
+        img.setAttribute('data-dexport', '1');
+        nodes[i].replaceWith(img);
+      } catch (e) {
+        console.error(e);
+        status.textContent = `diagram ${i + 1} failed — ${e.message}`;
+        return;
+      }
+    }
+    status.textContent = 'done · long-press each image → Save to Photos → drop into Medium';
+    setTimeout(() => { status.style.display = 'none'; }, 8000);
+  }
+</script>
 </body>
 </html>
