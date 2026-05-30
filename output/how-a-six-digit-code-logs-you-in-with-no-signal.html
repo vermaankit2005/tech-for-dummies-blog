@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How a Six-Digit Code Logs You In With No Signal</title>
+  <style>
+    :root {
+      --bg: #f8f4ee;
+      --surface: #f0ebe2;
+      --border: #ddd5c8;
+      --text: #2a2118;
+      --muted: #9a8f82;
+      --accent: #2563a8;
+      --accent-soft: #dce8f5;
+      --diagram-bg: #f2ede4;
+      --diagram-border: #d8cfc3;
+      --node-bg: #e8f0f9;
+      --node-border: #b0c8e8;
+      --warn-bg: #fdf3e3;
+      --warn-border: #e0a030;
+      --warn-text: #8a5a10;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.9;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 72px 24px 120px;
+    }
+
+    /* ── Header ── */
+    .kicker {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 14px;
+    }
+
+    .lede {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 52px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 44px 0;
+    }
+
+    /* ── Prose ── */
+    p { margin-bottom: 1.5em; }
+
+    p.big {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    em { font-style: italic; color: #5a4a3a; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .num {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Pull quote ── */
+    blockquote {
+      border-left: 2px solid var(--accent);
+      margin: 36px 0;
+      padding: 4px 24px;
+    }
+
+    blockquote p {
+      font-size: 1.2rem;
+      color: #4a3a2a;
+      font-style: italic;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Warning block ── */
+    .aside {
+      background: var(--warn-bg);
+      border-left: 3px solid var(--warn-border);
+      padding: 14px 20px;
+      margin: 32px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.93em;
+      color: var(--warn-text);
+      line-height: 1.7;
+    }
+
+    /* ── Diagrams ── */
+    .diagram {
+      margin: 44px 0;
+      background: var(--diagram-bg);
+      border: 1px solid var(--diagram-border);
+      border-radius: 10px;
+      padding: 28px 24px 22px;
+    }
+
+    .diagram-title {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .diagram-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* chain */
+    .chain {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .chain-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .chain-node {
+      flex: 1;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .chain-node .ico { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+    .chain-node .nm {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+    }
+    .chain-node .sub {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .chain-arrow {
+      display: flex;
+      align-items: center;
+      color: var(--accent);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    .chain-mid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      position: relative;
+    }
+
+    .chain-mid::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--node-border);
+    }
+
+    .chain-mid span {
+      background: var(--diagram-bg);
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      padding: 0 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* timeline */
+    .timeline {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 1px;
+      background: var(--node-border);
+    }
+
+    .tl-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tl-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin: 0 auto 8px;
+    }
+
+    .tl-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+
+    .tl-time {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Closing */
+    .closing {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 580px) {
+      h1 { font-size: 1.9rem; }
+      body { font-size: 17px; }
+      .timeline { flex-wrap: wrap; gap: 16px; }
+      .timeline::before { display: none; }
+      .tl-step { flex: 0 0 45%; }
+      .chain-row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<article class="page">
+
+  <div class="kicker">tech-for-dummies &nbsp;·&nbsp; 7 min read</div>
+  <h1>How a Six-Digit Code Logs You In With No Signal</h1>
+  <p class="lede">Your phone's in airplane mode. The website's a thousand miles away. You type six digits and it lets you in — and the two of them never exchange a word. So how do they agree?</p>
+
+  <hr />
+
+  <p class="big">The site wants six digits.</p>
+
+  <p>
+    You know the drill. You typed your password, and now there's a second box: <em>enter the code from your authenticator app.</em> So you swipe over to the app, and there it is — six digits, with a little ring draining down beside them. <span class="num">281 942</span>. You type them in. You're back in your account.
+  </p>
+
+  <p>
+    Now glance at the top of your phone. Airplane mode. No signal, no Wi-Fi, nothing. That app didn't fetch the code from anywhere — it had nowhere to fetch it from. And the website you're logging into, running on a server you couldn't point to on a map, somehow expected those exact six digits. Two machines that never spoke just agreed on a number.
+  </p>
+
+  <p>
+    They have spoken, actually. Once. And it was a while ago.
+  </p>
+
+  <hr />
+
+  <p>
+    Rewind to the day you set this up. The site showed you a QR code — that grid of black squares — and told you to scan it with the app. You assumed it was a link. It wasn't.
+  </p>
+
+  <p>
+    It was a secret. Buried in that QR code was a string of random characters — something like <code>JBSWY3DPEHPK3PXP</code>, written in a format called <em>Base32</em> so it survives being passed around without garbling. The site generated it, showed it to you once, and your app swallowed it. Now both of them hold the same secret: the site keeps its copy, your phone keeps its copy. And from that moment on they go quiet — neither one ever sends the secret to the other again. The technical name for that little provisioning packet inside the QR is an <em>otpauth URI</em>; once it's scanned, its job is done.
+  </p>
+
+  <p>
+    That shared secret is half the trick. Here's the other half.
+  </p>
+
+  <blockquote>
+    <p>They don't stay in sync by talking. They stay in sync by both watching the same clock.</p>
+  </blockquote>
+
+  <p>
+    Your phone knows what time it is. So does the server. Not the time you read off the lock screen — <em>Unix time</em>, the plain count of seconds that have ticked by since the first instant of 1970. Right now that number is past 1.7 billion, and it climbs by one every second, everywhere on Earth, in lockstep.
+  </p>
+
+  <p>
+    Both sides take that number and chop it into blocks of 30 seconds — they divide by 30 and throw away the remainder. So for any given half-minute, your phone and the server are holding the exact same block number, without checking with each other once. The thing they have in common isn't a connection. It's the time.
+  </p>
+
+  <hr />
+
+  <p>
+    Now they each do the same piece of arithmetic. Your phone takes the secret and the current block number and feeds both into a function called <em>HMAC-SHA1</em> — a one-way scrambler. You can pour two things in and get a fixed jumble of bytes out, but you can't run it backwards: hand someone the jumble and they can't recover the secret that made it. Out comes 20 bytes of noise.
+  </p>
+
+  <p>
+    Then your phone trims it down. It reads the very last sliver of that noise to pick a starting point, snips out four bytes from there, reads them as one number, and keeps the last six digits. That step has a name — <em>dynamic truncation</em> — and the result is your code: <span class="num">281 942</span>.
+  </p>
+
+  <p>
+    The server, a thousand miles away, holds the same secret and the same block number. It runs the same scrambler, makes the same cut, keeps the same six digits. It got <span class="num">281 942</span> too. Not because your phone told it. Because they did identical math on identical inputs, and there was only ever one answer.
+  </p>
+
+  <!-- PARALLEL COMPUTE DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">How both ends reach the same six digits</div>
+    <div class="chain">
+      <div class="chain-row">
+        <div class="chain-node">
+          <span class="ico">📱</span>
+          <span class="nm">Your Phone</span>
+          <span class="sub">secret + 30-sec block N</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔀</span>
+          <span class="nm">HMAC-SHA1</span>
+          <span class="sub">one-way scramble → 20 bytes</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔢</span>
+          <span class="nm">281 942</span>
+          <span class="sub">last 6 digits after truncation</span>
+        </div>
+      </div>
+      <div class="chain-mid"><span>same secret · same block · no connection</span></div>
+      <div class="chain-row">
+        <div class="chain-node">
+          <span class="ico">🖥️</span>
+          <span class="nm">The Server</span>
+          <span class="sub">secret + 30-sec block N</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔀</span>
+          <span class="nm">HMAC-SHA1</span>
+          <span class="sub">one-way scramble → 20 bytes</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-node">
+          <span class="ico">🔢</span>
+          <span class="nm">281 942</span>
+          <span class="sub">last 6 digits after truncation</span>
+        </div>
+      </div>
+    </div>
+    <p class="diagram-caption">Identical inputs, identical math, one possible answer — computed twice, a thousand miles apart, with nothing passing between them.</p>
+  </div>
+
+  <p>
+    That's why it works in airplane mode. Your phone was never going to ask anyone. It already held everything it needed — the secret from setup, and the time, which it carries with it everywhere.
+  </p>
+
+  <hr />
+
+  <p>
+    The ring draining beside the code is that 30-second block running out. When it empties, the block number ticks up by one, both sides feed the new number through the scrambler, and a fresh six digits surfaces on each end at the same instant. A code that's expired isn't rejected because it got "used up" — it's rejected because the block it belonged to is gone, and the math now lands on something else.
+  </p>
+
+  <p>
+    Which raises a problem. What if your phone's clock and the server's clock don't quite agree? Off by a few seconds, and you'd be computing block <span class="num">58 142 001</span> while the server has already moved to <span class="num">58 142 002</span> — different number in, different six digits out, login denied. So the server tilts the odds in your favor. When it checks your code, it doesn't only compute the current block; it also computes the one just before and the one just after, and accepts a match on any of the three. That <span class="num">±1</span> cushion is why a code you typed a hair late still slides through — and why each one really lives for up to about 90 seconds, not 30.
+  </p>
+
+  <!-- VALIDITY WINDOW DIAGRAM -->
+  <div class="diagram">
+    <div class="diagram-title">The 90-second life of one code</div>
+    <div class="timeline">
+      <div class="tl-step">
+        <div class="tl-dot">⏮️</div>
+        <span class="tl-label">Block N−1</span>
+        <span class="tl-time">still accepted</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">✅</div>
+        <span class="tl-label">Block N</span>
+        <span class="tl-time">right now</span>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">⏭️</div>
+        <span class="tl-label">Block N+1</span>
+        <span class="tl-time">still accepted</span>
+      </div>
+    </div>
+    <p class="diagram-caption">The server checks the block before and the block after, so one code survives up to ~90 seconds of clock drift between your phone and the server.</p>
+  </div>
+
+  <hr />
+
+  <p>
+    There's one thing the code doesn't know — and attackers live in that gap. Those six digits prove that whoever typed them holds the secret and can read a clock. They prove nothing about <em>where</em> they're being typed. The code is a bearer token: it works for anyone who's holding it, at the right moment, on any site that asks for it.
+  </p>
+
+  <div class="aside">
+    ⚠️ This is the one way it falls. If a convincing fake login page tricks you into entering your code, the person running that page can relay it to the <em>real</em> site within the 90-second window and walk straight in as you. The code did its job perfectly — it matched the clock. It just never knew which door it was opening. This is exactly the gap that newer logins — the FIDO2 keys and passkeys built into your phone — close, by binding the login to the real website's name, something a typed-in number can't do.
+  </div>
+
+  <!-- CLOSING -->
+  <div class="closing">
+    <p>You finish typing. The site lets you in. <span class="num">281 942</span> blinks out, and a new code slides up to take its place.</p>
+    <p style="margin-top:1.2em;">
+      Your phone has been in airplane mode the entire time. It never reached for a signal, never phoned the server, never needed to. It just knew a secret it has never once said out loud — and it knew what time it is.
+    </p>
+  </div>
+
+</article>
+<!-- ════════════════════════════════════════════════════════════════════
+     diagram-export · phone-friendly "save diagrams as images" for Medium
+     Paste this block immediately before </body> in every post's HTML.
+     What it does: adds a floating button. Tap it and every .diagram block
+     is rendered to a PNG in place, so you can long-press → Save to Photos
+     on a phone, then drop the images into the Medium editor.
+     Fully client-side (html-to-image via CDN). Hidden when printing.
+     ════════════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
+<style>
+  .dexport-bar {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #1e1a14; color: #f8f4ee;
+    font-family: 'Courier New', monospace; font-size: 13px; letter-spacing: .04em;
+    padding: 11px 18px; border: none; border-radius: 24px; cursor: pointer;
+    box-shadow: 0 4px 22px rgba(0,0,0,.3);
+  }
+  .dexport-bar:active { opacity: .7; }
+  .dexport-status {
+    position: fixed; bottom: 66px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #2563a8; color: #fff;
+    font-family: 'Courier New', monospace; font-size: 12px;
+    padding: 7px 15px; border-radius: 16px; display: none; max-width: 86vw;
+    text-align: center;
+  }
+  img[data-dexport] { width: 100%; border-radius: 10px; display: block; }
+  @media print { .dexport-bar, .dexport-status { display: none !important; } }
+</style>
+<button class="dexport-bar" onclick="dexportAll()">⬇ turn diagrams into images</button>
+<div class="dexport-status" id="dexportStatus"></div>
+<script>
+  async function dexportAll() {
+    const nodes  = [...document.querySelectorAll('.diagram')];
+    const status = document.getElementById('dexportStatus');
+    const bar    = document.querySelector('.dexport-bar');
+    if (!nodes.length) { status.style.display = 'block'; status.textContent = 'no diagrams found'; return; }
+    bar.style.display = 'none';
+    const bg = getComputedStyle(document.documentElement)
+                 .getPropertyValue('--diagram-bg').trim() || '#f2ede4';
+    for (let i = 0; i < nodes.length; i++) {
+      status.style.display = 'block';
+      status.textContent = `rendering diagram ${i + 1} of ${nodes.length}…`;
+      try {
+        const dataUrl = await htmlToImage.toPng(nodes[i], { pixelRatio: 2, backgroundColor: bg });
+        const img = new Image();
+        img.src = dataUrl;
+        img.alt = `diagram ${i + 1}`;
+        img.setAttribute('data-dexport', '1');
+        nodes[i].replaceWith(img);
+      } catch (e) {
+        console.error(e);
+        status.textContent = `diagram ${i + 1} failed — ${e.message}`;
+        return;
+      }
+    }
+    status.textContent = 'done · long-press each image → Save to Photos → drop into Medium';
+    setTimeout(() => { status.style.display = 'none'; }, 8000);
+  }
+</script>
+</body>
+</html>
